@@ -64,6 +64,7 @@ O banco de dados será responsável por armazenar:
 
 ```text
 projeto-pi-saas/
+
 ├── database/
 │   └── schema.sql
 │
@@ -257,6 +258,7 @@ Telas principais do sistema:
 - Criar telas completas, mas objetivas.
 - Priorizar código legível para estudantes.
 
+
 ## Banco de dados inicial
 
 O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabelas principais, chaves estrangeiras, índices básicos e dados de teste para começar o desenvolvimento.
@@ -264,3 +266,5 @@ O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabel
 ## Próxima etapa
 
 A próxima etapa será criar a base do backend com Express, conexão MySQL, middlewares principais e rotas iniciais.
+
+
