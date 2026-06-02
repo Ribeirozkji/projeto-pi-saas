@@ -5,10 +5,16 @@ function notFound(req, res, next) {
 }
 
 function errorHandler(error, req, res, next) {
-  const statusCode = error.statusCode || 500;
+  let statusCode = error.statusCode || 500;
+  let message = error.message || 'Erro interno do servidor.';
+
+  if (error.code === 'ER_DUP_ENTRY') {
+    statusCode = 409;
+    message = 'Registro duplicado. Verifique campos únicos como email ou SKU.';
+  }
 
   res.status(statusCode).json({
-    message: error.message || 'Erro interno do servidor.',
+    message,
     ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
   });
 }

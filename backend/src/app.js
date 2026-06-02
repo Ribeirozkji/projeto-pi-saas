@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
+const authRoutes = require('./routes/auth.routes');
+const usersRoutes = require('./routes/users.routes');
 
 const app = express();
 
@@ -35,6 +37,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

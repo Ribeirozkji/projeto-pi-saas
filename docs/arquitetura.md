@@ -257,7 +257,6 @@ Telas principais do sistema:
 - Criar telas completas, mas objetivas.
 - Priorizar código legível para estudantes.
 
-
 ## Banco de dados inicial
 
 O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabelas principais, chaves estrangeiras, índices básicos e dados de teste para começar o desenvolvimento.
@@ -267,7 +266,13 @@ O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabel
 
 A base inicial do backend fica em `backend/` e já contém `package.json`, `.env.example`, configuração do Express, conexão com MySQL e middlewares básicos de autenticação/autorização e erro.
 
+
+## Autenticação e usuários
+
+O backend já possui login com JWT, rota para consultar o usuário autenticado e CRUD simples de usuários administradores. As rotas iniciais são `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/users`, `POST /api/users`, `PUT /api/users/:id` e `DELETE /api/users/:id`.
+
 ## Próxima etapa
 
-A próxima etapa será implementar login e usuários, criando rotas, controllers e geração de token JWT.
+A próxima etapa será implementar produtos, categorias e fornecedores no backend.
+
 
