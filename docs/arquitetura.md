@@ -261,9 +261,11 @@ Telas principais do sistema:
 
 O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabelas principais, chaves estrangeiras, índices básicos e dados de teste para começar o desenvolvimento.
 
+
 ## Backend base
 
 A base inicial do backend fica em `backend/` e já contém `package.json`, `.env.example`, configuração do Express, conexão com MySQL e middlewares básicos de autenticação/autorização e erro.
+
 
 ## Autenticação e usuários
 
@@ -272,3 +274,5 @@ O backend já possui login com JWT, rota para consultar o usuário autenticado e
 ## Próxima etapa
 
 A próxima etapa será implementar produtos, categorias e fornecedores no backend.
+
+
