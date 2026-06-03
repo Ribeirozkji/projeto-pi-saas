@@ -40,8 +40,8 @@ function StockMovements() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canCreateMovement = ['admin', 'gerente', 'estoquista'].includes(user?.perfil);
 
-  const canCreateMovement = user?.perfil === 'admin';
 
   async function loadProducts() {
     const { data } = await api.get('/products?status=ativo');
@@ -158,12 +158,11 @@ function StockMovements() {
       <PageHeader
         title="Movimentações de estoque"
         subtitle="Registre entradas, saídas e acompanhe o histórico do estoque."
-        action={canCreateMovement ? <Button onClick={() => setShowForm(true)}>Nova movimentação</Button> : null}
+        action={<Button onClick={() => setShowForm(true)}>Nova movimentação</Button>}
       />
 
       <Alert message={message} type="success" />
       <Alert message={error} type="error" />
-      {!canCreateMovement && <Alert message="Seu perfil pode consultar o estoque, mas apenas administradores registram movimentações manuais." type="info" />}
 
       <div className="mb-4 grid gap-3 rounded-2xl bg-white p-4 shadow-soft ring-1 ring-slate-100 md:grid-cols-5">
         <Select name="product_id" value={filters.product_id} onChange={handleFilterChange}>

@@ -1,69 +1,63 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import api from '../services/api.js';
+import api, { TOKEN_STORAGE_KEY } from '../services/api.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('@estoque:user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('@estoque:token'));
-  const [loading, setLoading] = useState(Boolean(token));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const isAuthenticated = Boolean(token && user);
+  async function loadCurrentUser() {
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
 
-  useEffect(() => {
-    async function loadLoggedUser() {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data } = await api.get('/auth/me');
-        setUser(data.user);
-        localStorage.setItem('@estoque:user', JSON.stringify(data.user));
-      } catch (error) {
-        setToken(null);
-        setUser(null);
-        localStorage.removeItem('@estoque:token');
-        localStorage.removeItem('@estoque:user');
-      } finally {
-        setLoading(false);
-      }
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
     }
 
-    loadLoggedUser();
-  }, [token]);
+    try {
+      const { data } = await api.get('/auth/me');
+      setUser(data.user);
+    } catch {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  async function login(email, senha) {
-    const { data } = await api.post('/auth/login', { email, senha });
+  useEffect(() => {
+    loadCurrentUser();
 
-    setToken(data.token);
+    function handleLogoutEvent() {
+      setUser(null);
+    }
+
+    window.addEventListener('auth:logout', handleLogoutEvent);
+    return () => window.removeEventListener('auth:logout', handleLogoutEvent);
+  }, []);
+
+  async function login(credentials) {
+    const { data } = await api.post('/auth/login', credentials);
+    localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
     setUser(data.user);
-    localStorage.setItem('@estoque:token', data.token);
-    localStorage.setItem('@estoque:user', JSON.stringify(data.user));
-
-    return data.user;
+    return data;
   }
 
   function logout() {
-    setToken(null);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     setUser(null);
-    localStorage.removeItem('@estoque:token');
-    localStorage.removeItem('@estoque:user');
   }
 
   const value = useMemo(() => ({
     user,
-    token,
     loading,
-    isAuthenticated,
     login,
-    logout
-  }), [user, token, loading, isAuthenticated]);
+    logout,
+    isAuthenticated: Boolean(user)
+  }), [user, loading]);
 
   return (
     <AuthContext.Provider value={value}>

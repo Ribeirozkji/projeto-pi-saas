@@ -1,8 +1,16 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../contexts/AuthContext.jsx';
 import Button from './Button.jsx';
 
 function Navbar() {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -17,7 +25,9 @@ function Navbar() {
             <p className="text-sm font-semibold text-slate-800">{user?.nome}</p>
             <p className="text-xs capitalize text-slate-500">{user?.perfil}</p>
           </div>
-          <Button variant="secondary" onClick={logout}>Sair</Button>
+          <Button variant="secondary" className="px-3 py-1.5" onClick={handleLogout}>
+            Sair
+          </Button>
         </div>
       </div>
     </header>

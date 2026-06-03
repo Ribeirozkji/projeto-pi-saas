@@ -26,7 +26,7 @@ CREATE TABLE users (
   nome VARCHAR(120) NOT NULL,
   email VARCHAR(150) NOT NULL,
   senha VARCHAR(255) NOT NULL,
-  perfil ENUM('admin', 'operador') NOT NULL DEFAULT 'operador',
+  perfil ENUM('admin', 'gerente', 'estoquista', 'operador') NOT NULL DEFAULT 'operador',
   status ENUM('ativo', 'inativo') NOT NULL DEFAULT 'ativo',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -149,6 +149,9 @@ CREATE TABLE sales (
   total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   forma_pagamento ENUM('dinheiro', 'pix', 'cartao_debito', 'cartao_credito') NOT NULL,
   status ENUM('finalizada', 'cancelada') NOT NULL DEFAULT 'finalizada',
+  cancel_reason VARCHAR(255) NULL,
+  canceled_by INT NULL,
+  canceled_at TIMESTAMP NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 
@@ -157,11 +160,16 @@ CREATE TABLE sales (
   INDEX idx_sales_status (status),
   INDEX idx_sales_forma_pagamento (forma_pagamento),
   INDEX idx_sales_created_at (created_at),
+  INDEX idx_sales_canceled_by (canceled_by),
 
   CONSTRAINT fk_sales_user
     FOREIGN KEY (user_id) REFERENCES users(id)
     ON UPDATE CASCADE
     ON DELETE RESTRICT,
+  CONSTRAINT fk_sales_canceled_by
+    FOREIGN KEY (canceled_by) REFERENCES users(id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL,
   CONSTRAINT ck_sales_subtotal_nao_negativo
     CHECK (subtotal >= 0),
   CONSTRAINT ck_sales_desconto_nao_negativo
@@ -210,10 +218,10 @@ CREATE TABLE sale_items (
 -- Senha: admin123
 -- Observação: a senha abaixo está criptografada com bcrypt e deve ser trocada em ambiente real.
 
-
 INSERT INTO users (id, nome, email, senha, perfil, status) VALUES
-  (1, 'Administrador', 'admin@sistema.com', '$2a$10$V5u9v4NQrJyfZtDkRqK3HO73zgSwG98PfL3kqS76sOwJY90D3Hx9C.', 'admin', 'ativo'),
-  (2, 'Operador de Caixa', 'operador@sistema.com', '$2a$10$V5u9v4NQrJyfZtDkRqK3HO73zgSwG98PfL3kqS76sOwJY90D3Hx9C.', 'operador', 'ativo');
+  (1, 'Administrador', 'admin@sistema.com', '$2b$10$3jWm9tsstbmBUF1bO4P5h.lYdgPolII0bCDjiEURWFZFGss1WNRhe', 'admin', 'ativo'),
+  (2, 'Operador de Caixa', 'operador@sistema.com', '$2b$10$3jWm9tsstbmBUF1bO4P5h.lYdgPolII0bCDjiEURWFZFGss1WNRhe', 'operador', 'ativo');
+
 INSERT INTO categories (id, nome, descricao, status) VALUES
   (1, 'Alimentos', 'Produtos alimentícios em geral.', 'ativo'),
   (2, 'Bebidas', 'Bebidas frias, quentes e produtos relacionados.', 'ativo'),
