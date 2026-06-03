@@ -210,10 +210,10 @@ CREATE TABLE sale_items (
 -- Senha: admin123
 -- Observação: a senha abaixo está criptografada com bcrypt e deve ser trocada em ambiente real.
 
+
 INSERT INTO users (id, nome, email, senha, perfil, status) VALUES
   (1, 'Administrador', 'admin@sistema.com', '$2a$10$V5u9v4NQrJyfZtDkRqK3HO73zgSwG98PfL3kqS76sOwJY90D3Hx9C.', 'admin', 'ativo'),
   (2, 'Operador de Caixa', 'operador@sistema.com', '$2a$10$V5u9v4NQrJyfZtDkRqK3HO73zgSwG98PfL3kqS76sOwJY90D3Hx9C.', 'operador', 'ativo');
-
 INSERT INTO categories (id, nome, descricao, status) VALUES
   (1, 'Alimentos', 'Produtos alimentícios em geral.', 'ativo'),
   (2, 'Bebidas', 'Bebidas frias, quentes e produtos relacionados.', 'ativo'),
