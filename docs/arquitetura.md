@@ -261,18 +261,46 @@ Telas principais do sistema:
 
 O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabelas principais, chaves estrangeiras, índices básicos e dados de teste para começar o desenvolvimento.
 
-
 ## Backend base
 
 A base inicial do backend fica em `backend/` e já contém `package.json`, `.env.example`, configuração do Express, conexão com MySQL e middlewares básicos de autenticação/autorização e erro.
-
 
 ## Autenticação e usuários
 
 O backend já possui login com JWT, rota para consultar o usuário autenticado e CRUD simples de usuários administradores. As rotas iniciais são `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/users`, `POST /api/users`, `PUT /api/users/:id` e `DELETE /api/users/:id`.
 
+## Produtos, categorias e fornecedores
+
+O backend já possui CRUD completo de produtos, categorias e fornecedores com autenticação, autorização por perfil, validações básicas, filtros simples e consultas MySQL parametrizadas.
+
+## Estoque e movimentações
+
+O backend já possui registro e consulta de movimentações de estoque. Entradas aumentam estoque, saídas diminuem estoque, saídas maiores que o saldo atual são bloqueadas e cada histórico registra estoque anterior e posterior.
+
+## Vendas simples
+
+O backend já possui vendas simples com criação de venda, itens, cálculo de subtotal/desconto/total, baixa automática do estoque, registro de movimentação de saída e cancelamento com estorno do estoque.
+
+## Frontend base
+
+O frontend já possui base com Vite, React, Tailwind CSS, React Router, Axios, `AuthContext`, `ProtectedRoute`, sidebar, navbar, componentes reutilizáveis e layout principal autenticado.
+
+## Telas principais do frontend
+
+As telas de login, dashboard, produtos, categorias, fornecedores e movimentações de estoque já possuem layout funcional, filtros, formulários e integração com as rotas existentes do backend.
+
+## Vendas e comprovante no frontend
+
+A tela de vendas já possui carrinho, busca de produto, quantidade, desconto, forma de pagamento, finalização integrada com o backend e comprovante simples sem valor fiscal para visualização e impressão.
+
+## Relatórios básicos
+
+O backend e o frontend já possuem relatórios básicos de estoque atual, produtos com estoque baixo, movimentações e vendas por período, com filtros simples e resumos em cards.
+
+## Usuários no frontend e README
+
+A tela de usuários já está integrada ao backend para administradores, e o projeto possui README completo com instruções de instalação, configuração, rotas, telas e regras principais.
+
 ## Próxima etapa
 
-A próxima etapa será implementar produtos, categorias e fornecedores no backend.
-
-
+A próxima etapa será realizar testes integrados em ambiente local com MySQL, backend e frontend rodando juntos.

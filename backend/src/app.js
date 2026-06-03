@@ -4,6 +4,12 @@ const cors = require('cors');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const authRoutes = require('./routes/auth.routes');
 const usersRoutes = require('./routes/users.routes');
+const productsRoutes = require('./routes/products.routes');
+const categoriesRoutes = require('./routes/categories.routes');
+const suppliersRoutes = require('./routes/suppliers.routes');
+const stockRoutes = require('./routes/stock.routes');
+const salesRoutes = require('./routes/sales.routes');
+const reportsRoutes = require('./routes/reports.routes');
 
 const app = express();
 
@@ -40,6 +46,12 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/suppliers', suppliersRoutes);
+app.use('/api/stock', stockRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/reports', reportsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
