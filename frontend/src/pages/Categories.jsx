@@ -8,11 +8,13 @@ import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
 import Textarea from '../components/Textarea.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 
 const emptyForm = { nome: '', descricao: '', status: 'ativo' };
 
 function Categories() {
+  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({ search: '', status: '' });
   const [formData, setFormData] = useState(emptyForm);
@@ -21,6 +23,8 @@ function Categories() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canManageCategories = ['admin', 'gerente'].includes(user?.perfil);
+  const canDeleteCategories = user?.perfil === 'admin';
 
   async function loadCategories() {
     setLoading(true);
@@ -55,6 +59,11 @@ function Categories() {
   }
 
   function openCreateForm() {
+    if (!canManageCategories) {
+      setError('Seu perfil não pode cadastrar categorias.');
+      return;
+    }
+
     setEditingCategory(null);
     setFormData(emptyForm);
     setShowForm(true);
@@ -63,6 +72,11 @@ function Categories() {
   }
 
   function openEditForm(category) {
+    if (!canManageCategories) {
+      setError('Seu perfil não pode editar categorias.');
+      return;
+    }
+
     setEditingCategory(category);
     setFormData({
       nome: category.nome || '',
@@ -102,6 +116,11 @@ function Categories() {
   }
 
   async function handleDelete(category) {
+    if (!canDeleteCategories) {
+      setError('Seu perfil não pode inativar categorias.');
+      return;
+    }
+
     const confirmed = window.confirm(`Deseja inativar a categoria ${category.nome}?`);
     if (!confirmed) return;
 
@@ -141,7 +160,7 @@ function Categories() {
       <PageHeader
         title="Categorias"
         subtitle="Organize os produtos por grupos simples."
-        action={<Button onClick={openCreateForm}>Nova categoria</Button>}
+        action={canManageCategories ? <Button onClick={openCreateForm}>Nova categoria</Button> : null}
       />
 
       <Alert message={message} type="success" />

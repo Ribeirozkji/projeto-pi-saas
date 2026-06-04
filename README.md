@@ -1,28 +1,58 @@
-# Sistema simples de controle de estoque e vendas
+# Sistema de controle de estoque e vendas
 
-Aplicação web simples, funcional e organizada para controle de estoque e vendas, criada com **React + Vite** no frontend, **Node.js + Express** no backend e **MySQL** no banco de dados.
+Aplicação web para controle simples de estoque e vendas, construída com **React + Vite** no frontend, **Node.js + Express** no backend e **MySQL** no banco de dados.
 
-O projeto foi pensado para ser desenvolvido e apresentado por estudantes: ele evita arquitetura exagerada, microserviços, emissão fiscal real, NF-e/NFC-e e integrações com SEFAZ. O comprovante de venda é apenas uma visualização simples **sem valor fiscal**.
+O sistema cobre cadastro de produtos, categorias, fornecedores, movimentações de estoque, vendas, comprovante sem valor fiscal, dashboard e relatórios básicos. A autenticação voltou a ser obrigatória e as ações críticas agora respeitam permissões por perfil.
 
-## Funcionalidades implementadas
+> Este projeto não emite NF-e, NFC-e ou qualquer documento fiscal. O comprovante gerado é apenas um comprovante interno, sem valor fiscal.
 
-- Login com JWT.
-- Controle de sessão no frontend com `AuthContext`.
-- Proteção de rotas no frontend e backend.
+## Estado atual
+
+- Login com email e senha.
+- Autenticação JWT.
+- Rotas principais protegidas no backend.
+- Rotas protegidas no frontend com `ProtectedRoute`.
+- Token enviado automaticamente pelo Axios.
+- Navbar com usuário autenticado e botão de sair.
+- Sidebar filtrada conforme o perfil do usuário.
+- Registro do usuário real em vendas e movimentações de estoque.
+- Cancelamento de venda com motivo obrigatório.
+- Auditoria básica de cancelamento: motivo, usuário responsável e data.
+- Perfis de acesso: `admin`, `gerente`, `estoquista`, `operador`.
+
+## Permissões
+
+| Funcionalidade | Admin | Gerente | Estoquista | Operador |
+| --- | --- | --- | --- | --- |
+| Dashboard | Sim | Sim | Sim | Sim |
+| Listar produtos | Sim | Sim | Sim | Sim |
+| Criar/editar produtos | Sim | Sim | Não | Não |
+| Inativar produtos | Sim | Não | Não | Não |
+| Categorias e fornecedores | Sim | Sim | Consulta | Consulta |
+| Movimentação manual de estoque | Sim | Sim | Sim | Não |
+| Realizar venda | Sim | Sim | Não | Sim |
+| Cancelar venda | Sim | Sim | Não | Não |
+| Relatórios | Sim | Sim | Não | Não |
+| Gerenciar usuários | Sim | Não | Não | Não |
+
+## Funcionalidades
+
+- Login e validação de sessão.
 - CRUD de usuários para administradores.
 - CRUD de produtos.
 - CRUD de categorias.
 - CRUD de fornecedores.
 - Movimentações de estoque com entrada e saída.
 - Bloqueio de saída maior que o estoque atual.
-- Histórico de estoque com estoque anterior e posterior.
-- Venda simples com carrinho.
+- Histórico de estoque com saldo anterior e saldo posterior.
+- Venda com carrinho.
 - Desconto simples na venda.
-- Baixa automática de estoque ao vender.
+- Baixa automática de estoque ao finalizar venda.
 - Cancelamento de venda com estorno de estoque.
+- Motivo obrigatório no cancelamento.
 - Comprovante simples sem valor fiscal.
 - Dashboard com indicadores básicos.
-- Relatórios de estoque atual, estoque baixo, movimentações e vendas por período.
+- Relatórios de estoque, movimentações e vendas por período.
 
 ## Tecnologias
 
@@ -34,7 +64,7 @@ O projeto foi pensado para ser desenvolvido e apresentado por estudantes: ele ev
 - JWT
 - Bcrypt
 - Dotenv
-- Cors
+- CORS
 
 ### Frontend
 
@@ -43,15 +73,15 @@ O projeto foi pensado para ser desenvolvido e apresentado por estudantes: ele ev
 - React Router DOM
 - Axios
 - Tailwind CSS
-- React Hook Form disponível para evolução
-- Recharts disponível para evolução
+- Recharts
 
 ### Banco de dados
 
 - MySQL 8+
-- Script SQL em `database/schema.sql`
+- Schema inicial em `database/schema.sql`
+- Migrações em `database/migrations`
 
-## Estrutura do projeto
+## Estrutura
 
 ```text
 projeto-pi-saas/
@@ -67,9 +97,11 @@ projeto-pi-saas/
 │       ├── routes/
 │       └── utils/
 ├── database/
-│   └── schema.sql
+│   ├── schema.sql
+│   └── migrations/
 ├── docs/
-│   └── arquitetura.md
+│   ├── arquitetura.md
+│   └── migracoes.md
 └── frontend/
     ├── .env.example
     ├── package.json
@@ -87,24 +119,25 @@ projeto-pi-saas/
 
 ## Pré-requisitos
 
-Instale antes de rodar:
-
 - Node.js 18 ou superior.
 - npm.
 - MySQL 8 ou superior.
 
-## Como rodar o projeto
+## Como rodar
 
-### 1. Clone o projeto
+### 1. Instale as dependências
 
 ```bash
-git clone <url-do-repositorio>
-cd projeto-pi-saas
+cd backend
+npm install
+
+cd ../frontend
+npm install
 ```
 
 ### 2. Configure o banco de dados
 
-Entre no MySQL e execute o script:
+Para uma base nova de desenvolvimento ou demonstração:
 
 ```bash
 mysql -u root -p < database/schema.sql
@@ -112,15 +145,19 @@ mysql -u root -p < database/schema.sql
 
 O script cria o banco `estoque_vendas_saas`, as tabelas principais e dados iniciais.
 
-### 3. Configure o backend
+> Atenção: `database/schema.sql` recria tabelas. Não execute esse arquivo em uma base com dados reais.
+
+Para atualizar uma base já existente, use as migrações:
 
 ```bash
-cd backend
-cp .env.example .env
-npm install
+mysql -u root -p < database/migrations/001_auth_permissions_and_sale_cancellation.sql
 ```
 
-Edite o arquivo `backend/.env` com os dados do seu MySQL:
+Mais detalhes estão em `docs/migracoes.md`.
+
+### 3. Configure o backend
+
+Crie o arquivo `backend/.env` com base em `backend/.env.example`:
 
 ```env
 NODE_ENV=development
@@ -141,6 +178,7 @@ JWT_EXPIRES_IN=1d
 Depois rode:
 
 ```bash
+cd backend
 npm run dev
 ```
 
@@ -150,14 +188,24 @@ A API ficará disponível em:
 http://localhost:3000/api
 ```
 
+Rota de saúde:
+
+```text
+http://localhost:3000/api/health
+```
+
 ### 4. Configure o frontend
 
-Abra outro terminal:
+Crie o arquivo `frontend/.env` com base em `frontend/.env.example`:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+Depois rode:
 
 ```bash
 cd frontend
-cp .env.example .env
-npm install
 npm run dev
 ```
 
@@ -169,14 +217,14 @@ http://localhost:5173
 
 ## Usuários iniciais
 
-O banco inclui usuários de teste:
+O schema inicial cria usuários de teste:
 
 | Perfil | Email | Senha |
 | --- | --- | --- |
 | Admin | `admin@sistema.com` | `admin123` |
 | Operador | `operador@sistema.com` | `admin123` |
 
-> Em um ambiente real, altere as senhas iniciais e configure um `JWT_SECRET` forte.
+Use o usuário admin para cadastrar novos usuários e atribuir os perfis necessários.
 
 ## Scripts úteis
 
@@ -184,112 +232,120 @@ O banco inclui usuários de teste:
 
 ```bash
 cd backend
-npm run dev      # roda com nodemon
-npm start        # roda com node
-npm run check    # valida sintaxe dos arquivos principais com node --check
+npm run dev
+npm start
+npm run check
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-npm run dev      # inicia o Vite
-npm run build    # gera build de produção
-npm run preview  # pré-visualiza o build
+npm run dev
+npm run build
+npm run preview
 ```
 
 ## Rotas principais da API
 
-Todas as rotas abaixo usam prefixo `/api`.
+Todas as rotas usam o prefixo `/api`.
 
 ### Autenticação
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| POST | `/auth/login` | Login e geração de token JWT |
-| GET | `/auth/me` | Dados do usuário logado |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| POST | `/auth/login` | Público | Realiza login e retorna JWT |
+| GET | `/auth/me` | Autenticado | Retorna o usuário autenticado |
 
 ### Usuários
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/users` | Lista usuários |
-| POST | `/users` | Cria usuário |
-| PUT | `/users/:id` | Atualiza usuário |
-| DELETE | `/users/:id` | Inativa usuário |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/users` | Admin | Lista usuários |
+| POST | `/users` | Admin | Cria usuário |
+| PUT | `/users/:id` | Admin | Atualiza usuário |
+| DELETE | `/users/:id` | Admin | Inativa usuário |
 
 ### Produtos
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/products` | Lista produtos com filtros |
-| GET | `/products/:id` | Busca produto por ID |
-| POST | `/products` | Cria produto |
-| PUT | `/products/:id` | Atualiza produto |
-| DELETE | `/products/:id` | Inativa produto |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/products` | Autenticado | Lista produtos com filtros |
+| GET | `/products/:id` | Autenticado | Busca produto por ID |
+| POST | `/products` | Admin/Gerente | Cria produto |
+| PUT | `/products/:id` | Admin/Gerente | Atualiza produto |
+| DELETE | `/products/:id` | Admin | Inativa produto |
 
 ### Categorias
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/categories` | Lista categorias |
-| GET | `/categories/:id` | Busca categoria por ID |
-| POST | `/categories` | Cria categoria |
-| PUT | `/categories/:id` | Atualiza categoria |
-| DELETE | `/categories/:id` | Inativa categoria |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/categories` | Autenticado | Lista categorias |
+| GET | `/categories/:id` | Autenticado | Busca categoria por ID |
+| POST | `/categories` | Admin/Gerente | Cria categoria |
+| PUT | `/categories/:id` | Admin/Gerente | Atualiza categoria |
+| DELETE | `/categories/:id` | Admin | Inativa categoria |
 
 ### Fornecedores
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/suppliers` | Lista fornecedores |
-| GET | `/suppliers/:id` | Busca fornecedor por ID |
-| POST | `/suppliers` | Cria fornecedor |
-| PUT | `/suppliers/:id` | Atualiza fornecedor |
-| DELETE | `/suppliers/:id` | Inativa fornecedor |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/suppliers` | Autenticado | Lista fornecedores |
+| GET | `/suppliers/:id` | Autenticado | Busca fornecedor por ID |
+| POST | `/suppliers` | Admin/Gerente | Cria fornecedor |
+| PUT | `/suppliers/:id` | Admin/Gerente | Atualiza fornecedor |
+| DELETE | `/suppliers/:id` | Admin | Inativa fornecedor |
 
 ### Estoque
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/stock/movements` | Lista movimentações |
-| POST | `/stock/movements` | Registra entrada ou saída manual |
-| GET | `/stock/low-stock` | Lista produtos com estoque baixo |
-| GET | `/stock/near-expiration` | Lista produtos próximos do vencimento |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/stock/movements` | Autenticado | Lista movimentações |
+| POST | `/stock/movements` | Admin/Gerente/Estoquista | Registra movimentação manual |
+| GET | `/stock/low-stock` | Autenticado | Lista produtos com estoque baixo |
+| GET | `/stock/near-expiration` | Autenticado | Lista produtos próximos do vencimento |
 
 ### Vendas
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/sales` | Lista vendas |
-| GET | `/sales/:id` | Busca venda com itens |
-| POST | `/sales` | Finaliza venda e baixa estoque |
-| POST | `/sales/:id/cancel` | Cancela venda e estorna estoque |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/sales` | Autenticado | Lista vendas |
+| GET | `/sales/:id` | Autenticado | Busca venda com itens |
+| POST | `/sales` | Admin/Gerente/Operador | Finaliza venda e baixa estoque |
+| POST | `/sales/:id/cancel` | Admin/Gerente | Cancela venda, exige motivo e estorna estoque |
+
+### Dashboard
+
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/dashboard` | Autenticado | Indicadores gerais |
 
 ### Relatórios
 
-| Método | Rota | Descrição |
-| --- | --- | --- |
-| GET | `/reports/stock` | Relatório de estoque atual e estoque baixo |
-| GET | `/reports/movements` | Relatório de movimentações |
-| GET | `/reports/sales` | Relatório de vendas por período |
+| Método | Rota | Acesso | Descrição |
+| --- | --- | --- | --- |
+| GET | `/reports/stock` | Admin/Gerente | Relatório de estoque |
+| GET | `/reports/movements` | Admin/Gerente | Relatório de movimentações |
+| GET | `/reports/sales` | Admin/Gerente | Relatório de vendas |
 
-## Principais telas do frontend
+## Telas do frontend
 
 | Rota | Tela |
 | --- | --- |
 | `/login` | Login |
 | `/dashboard` | Dashboard |
 | `/products` | Produtos |
+| `/products/new` | Novo produto |
+| `/products/:id/edit` | Editar produto |
 | `/categories` | Categorias |
 | `/suppliers` | Fornecedores |
 | `/stock` | Movimentações de estoque |
-| `/sales` | Vendas simples |
+| `/sales` | Vendas |
 | `/sales/:id/receipt` | Comprovante sem valor fiscal |
-| `/reports` | Relatórios básicos |
+| `/reports` | Relatórios |
 | `/users` | Usuários |
 
-## Regras de negócio importantes
+## Regras de negócio
 
 - SKU do produto deve ser único.
 - Preço de venda não pode ser menor que preço de custo.
@@ -300,34 +356,42 @@ Todas as rotas abaixo usam prefixo `/api`.
 - Toda movimentação registra estoque anterior e estoque posterior.
 - Venda finalizada baixa estoque automaticamente.
 - Venda cancelada estorna o estoque.
+- Cancelamento de venda exige motivo.
 - Comprovante de venda não tem valor fiscal.
 
-## Observações para apresentação
+## Validação local
 
-Este projeto é adequado para apresentação acadêmica ou demonstração de sistema interno simples. Ele demonstra:
+Comandos usados para validar o estado atual:
 
-- CRUD.
-- API REST.
-- Autenticação com JWT.
-- Relacionamento entre tabelas MySQL.
-- Consumo de API no React.
-- Componentização.
-- Regras de negócio simples.
-- Layout responsivo com Tailwind CSS.
+```bash
+cd backend
+npm run check
 
-## Limitações intencionais
+cd ../frontend
+npm run build
+```
 
-O sistema não implementa:
+## Limitações atuais
 
-- NF-e.
-- NFC-e.
+O sistema ainda não implementa:
+
 - Emissão fiscal real.
+- NF-e ou NFC-e.
 - Integração com SEFAZ.
-- Regras tributárias complexas.
-- Microserviços.
-- Exportação PDF/Excel.
+- Controle de caixa.
+- Exportação PDF/Excel dos relatórios.
+- Testes automatizados de API e frontend.
+- Multiempresa/tenant para SaaS completo.
+- Backup/restore automatizado.
 
-Essas limitações são intencionais para manter o projeto simples, didático e possível de manter por iniciantes.
+## Próximas melhorias recomendadas
+
+- Controle de caixa com abertura, fechamento, sangria e suprimento.
+- Testes automatizados para venda, cancelamento, estoque e permissões.
+- Auditoria mais ampla para alterações de produtos, usuários e estoque.
+- Exportação de relatórios.
+- Configurações da empresa, como nome, documento, endereço e logo.
+- Deploy com HTTPS, CORS restrito e variáveis seguras.
 
 ## Solução de problemas
 
@@ -349,8 +413,8 @@ FRONTEND_URL=http://localhost:5173
 
 ### Token inválido ou expirado
 
-Faça logout e login novamente. Se necessário, limpe o `localStorage` do navegador.
+Faça logout e login novamente. Se necessário, limpe o token salvo no navegador.
 
-### Dependências não instalam
+### Acesso negado
 
-Verifique sua conexão com a internet e o acesso ao registry do npm. Em redes corporativas ou ambientes restritos, pode ser necessário configurar proxy ou registry interno.
+Verifique se o usuário tem o perfil necessário para a rota ou tela acessada.

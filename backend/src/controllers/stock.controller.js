@@ -112,6 +112,7 @@ async function createMovement(req, res) {
   const tipo = req.body.tipo;
   const quantidade = Number(req.body.quantidade);
   const observacao = req.body.observacao?.trim() || null;
+  const currentUserId = req.user?.id || 1;
 
   const connection = await pool.getConnection();
 
@@ -165,7 +166,7 @@ async function createMovement(req, res) {
        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         productId,
-        req.user.id,
+        currentUserId,
         tipo,
         quantidade,
         estoqueAnterior,

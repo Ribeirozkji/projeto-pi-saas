@@ -7,7 +7,6 @@ import Input from '../components/Input.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
-import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 
 const emptyForm = {
@@ -19,7 +18,6 @@ const emptyForm = {
 };
 
 function Users() {
-  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [formData, setFormData] = useState(emptyForm);
   const [editingUser, setEditingUser] = useState(null);
@@ -28,11 +26,8 @@ function Users() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const isAdmin = user?.perfil === 'admin';
 
   async function loadUsers() {
-    if (!isAdmin) return;
-
     setLoading(true);
     setError('');
 
@@ -48,7 +43,7 @@ function Users() {
 
   useEffect(() => {
     loadUsers();
-  }, [isAdmin]);
+  }, []);
 
   function handleFormChange(event) {
     const { name, value } = event.target;
@@ -151,14 +146,13 @@ function Users() {
       <PageHeader
         title="Usuários"
         subtitle="Cadastro simples de administradores e operadores."
-        action={isAdmin ? <Button onClick={openCreateForm}>Novo usuário</Button> : null}
+        action={<Button onClick={openCreateForm}>Novo usuário</Button>}
       />
 
-      {!isAdmin && <Alert message="Apenas administradores podem gerenciar usuários." type="warning" />}
       <Alert message={message} type="success" />
       <Alert message={error} type="error" />
 
-      {showForm && isAdmin && (
+      {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 rounded-2xl bg-white p-5 shadow-soft ring-1 ring-slate-100">
           <h3 className="mb-4 text-lg font-bold text-slate-900">
             {editingUser ? 'Editar usuário' : 'Novo usuário'}
@@ -176,6 +170,8 @@ function Users() {
             />
             <Select label="Perfil" name="perfil" value={formData.perfil} onChange={handleFormChange}>
               <option value="admin">Admin</option>
+              <option value="gerente">Gerente</option>
+              <option value="estoquista">Estoquista</option>
               <option value="operador">Operador</option>
             </Select>
             <Select label="Status" name="status" value={formData.status} onChange={handleFormChange}>

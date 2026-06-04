@@ -29,8 +29,7 @@ Banco MySQL
 O frontend será responsável por:
 
 - Mostrar as telas do sistema.
-- Fazer login e logout.
-- Proteger páginas que exigem autenticação.
+- Exibir as páginas principais em modo público temporário, sem obrigar login.
 - Consumir a API usando Axios.
 - Exibir tabelas, formulários, cards, gráficos e mensagens de erro.
 - Manter uma interface profissional, simples e responsiva.
@@ -41,7 +40,7 @@ O backend será responsável por:
 
 - Receber as requisições HTTP.
 - Validar dados enviados pelo frontend.
-- Autenticar usuários com JWT.
+- Manter autenticação preparada para reativação futura, sem bloquear as rotas principais nesta etapa.
 - Criptografar senhas com bcrypt.
 - Executar regras simples de negócio.
 - Consultar e alterar dados no MySQL usando queries parametrizadas.
@@ -157,7 +156,7 @@ Arquivo de conexão com o MySQL.
 
 Pasta para middlewares reaproveitáveis:
 
-- `auth.middleware.js`: valida o token JWT e identifica o usuário logado.
+- `auth.middleware.js`: mantido para reativação futura; não é usado nas rotas principais enquanto o modo sem autenticação está ativo.
 - `error.middleware.js`: centraliza o tratamento básico de erros.
 
 ### `src/routes/`
@@ -194,18 +193,18 @@ Componente principal da aplicação.
 
 ### `src/services/api.js`
 
-Configuração central do Axios, incluindo URL base da API e envio automático do token JWT.
+Configuração central do Axios com a URL base da API. Nesta etapa, o cliente não envia token obrigatório.
 
 ### `src/contexts/AuthContext.jsx`
 
-Contexto de autenticação para armazenar usuário logado, token, login e logout.
+Contexto mantido como compatibilidade. Nesta etapa, retorna um usuário local fixo e não controla sessão real.
 
 ### `src/routes/`
 
 Pasta responsável pelas rotas do frontend:
 
 - `AppRoutes.jsx`: define as páginas da aplicação.
-- `ProtectedRoute.jsx`: bloqueia acesso de usuários não autenticados.
+- `ProtectedRoute.jsx`: mantido como compatibilidade, mas libera o acesso enquanto o login está desativado.
 
 ### `src/components/`
 
@@ -223,7 +222,7 @@ Componentes reutilizáveis da interface:
 
 Telas principais do sistema:
 
-- Login.
+- Login mantido apenas como arquivo de compatibilidade.
 - Dashboard.
 - Produtos.
 - Categorias.
@@ -234,16 +233,13 @@ Telas principais do sistema:
 - Relatórios.
 - Usuários.
 
-## Fluxo básico da aplicação
+## Fluxo básico da aplicação no modo sem autenticação
 
 1. O usuário acessa o frontend.
-2. O usuário informa email e senha na tela de login.
-3. O frontend envia os dados para `POST /api/auth/login`.
-4. O backend valida o usuário no MySQL.
-5. Se estiver correto, o backend retorna um token JWT.
-6. O frontend salva o token e libera as rotas protegidas.
-7. As próximas requisições enviam o token no cabeçalho.
-8. O backend valida o token antes de permitir acesso aos dados.
+2. O React Router abre o dashboard sem passar por tela de login.
+3. As páginas chamam a API com Axios sem enviar token obrigatório.
+4. O backend responde às rotas principais sem `authMiddleware` e sem bloqueio por perfil.
+5. Quando uma venda ou movimentação precisa de `user_id`, o backend usa temporariamente o usuário padrão `id = 1`.
 
 ## Regras para manter o projeto simples
 
@@ -263,15 +259,15 @@ O script inicial do banco ficará em `database/schema.sql`. Ele criará as tabel
 
 ## Backend base
 
-A base inicial do backend fica em `backend/` e já contém `package.json`, `.env.example`, configuração do Express, conexão com MySQL e middlewares básicos de autenticação/autorização e erro.
+A base inicial do backend fica em `backend/` e já contém `package.json`, `.env.example`, configuração do Express, conexão com MySQL, middleware de erro e arquivos de autenticação mantidos para reativação futura.
 
 ## Autenticação e usuários
 
-O backend já possui login com JWT, rota para consultar o usuário autenticado e CRUD simples de usuários administradores. As rotas iniciais são `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/users`, `POST /api/users`, `PUT /api/users/:id` e `DELETE /api/users/:id`.
+O backend mantém os arquivos de login com JWT para evolução futura, mas as rotas principais estão públicas temporariamente e o CRUD de usuários não exige perfil de administrador nesta etapa. As rotas iniciais são `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/users`, `POST /api/users`, `PUT /api/users/:id` e `DELETE /api/users/:id`.
 
 ## Produtos, categorias e fornecedores
 
-O backend já possui CRUD completo de produtos, categorias e fornecedores com autenticação, autorização por perfil, validações básicas, filtros simples e consultas MySQL parametrizadas.
+O backend já possui CRUD completo de produtos, categorias e fornecedores com rotas públicas temporárias, validações básicas, filtros simples e consultas MySQL parametrizadas.
 
 ## Estoque e movimentações
 
@@ -283,11 +279,11 @@ O backend já possui vendas simples com criação de venda, itens, cálculo de s
 
 ## Frontend base
 
-O frontend já possui base com Vite, React, Tailwind CSS, React Router, Axios, `AuthContext`, `ProtectedRoute`, sidebar, navbar, componentes reutilizáveis e layout principal autenticado.
+O frontend já possui base com Vite, React, Tailwind CSS, React Router, Axios, sidebar, navbar, componentes reutilizáveis e layout principal público temporário.
 
 ## Telas principais do frontend
 
-As telas de login, dashboard, produtos, categorias, fornecedores e movimentações de estoque já possuem layout funcional, filtros, formulários e integração com as rotas existentes do backend.
+As telas de dashboard, produtos, categorias, fornecedores e movimentações de estoque já possuem layout funcional, filtros, formulários e integração com as rotas existentes do backend.
 
 ## Vendas e comprovante no frontend
 
@@ -299,7 +295,7 @@ O backend e o frontend já possuem relatórios básicos de estoque atual, produt
 
 ## Usuários no frontend e README
 
-A tela de usuários já está integrada ao backend para administradores, e o projeto possui README completo com instruções de instalação, configuração, rotas, telas e regras principais.
+A tela de usuários já está integrada ao backend sem bloqueio por perfil nesta etapa, e o projeto possui README completo com instruções de instalação, configuração, rotas, telas e regras principais.
 
 ## Próxima etapa
 

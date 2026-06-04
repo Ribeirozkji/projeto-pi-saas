@@ -10,9 +10,7 @@ function errorHandler(error, req, res, next) {
 
   if (error.code === 'ER_DUP_ENTRY') {
     statusCode = 409;
-
     message = 'Registro duplicado. Verifique campos únicos como email, SKU, nome ou CNPJ/CPF.';
-main
   }
 
   res.status(statusCode).json({
@@ -24,6 +22,4 @@ main
 module.exports = {
   notFound,
   errorHandler
-
 };
-

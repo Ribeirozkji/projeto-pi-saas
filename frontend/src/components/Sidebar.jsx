@@ -1,17 +1,26 @@
 import { NavLink } from 'react-router-dom';
 
+import { useAuth } from '../contexts/AuthContext.jsx';
+
 const menuItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/products', label: 'Produtos', icon: '📦' },
-  { to: '/categories', label: 'Categorias', icon: '🏷️' },
-  { to: '/suppliers', label: 'Fornecedores', icon: '🚚' },
-  { to: '/stock', label: 'Estoque', icon: '🔁' },
-  { to: '/sales', label: 'Vendas', icon: '🛒' },
-  { to: '/reports', label: 'Relatórios', icon: '📈' },
-  { to: '/users', label: 'Usuários', icon: '👥' }
+  { to: '/dashboard', label: 'Dashboard', icon: '▣' },
+  { to: '/products', label: 'Produtos', icon: '□' },
+  { to: '/categories', label: 'Categorias', icon: '◇' },
+  { to: '/suppliers', label: 'Fornecedores', icon: '▤' },
+  { to: '/stock', label: 'Estoque', icon: '↕', roles: ['admin', 'gerente', 'estoquista'] },
+  { to: '/sales', label: 'Vendas', icon: '$', roles: ['admin', 'gerente', 'operador'] },
+  { to: '/reports', label: 'Relatórios', icon: '↗', roles: ['admin', 'gerente'] },
+  { to: '/users', label: 'Usuários', icon: '◎', roles: ['admin'] }
 ];
 
+function canAccess(item, profile) {
+  return !item.roles || item.roles.includes(profile);
+}
+
 function Sidebar() {
+  const { user } = useAuth();
+  const visibleItems = menuItems.filter((item) => canAccess(item, user?.perfil));
+
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-slate-200 bg-white px-4 py-5 lg:block">
       <div className="mb-8 flex items-center gap-3 px-2">
@@ -25,7 +34,7 @@ function Sidebar() {
       </div>
 
       <nav className="space-y-1">
-        {menuItems.map((item) => (
+        {visibleItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -35,7 +44,7 @@ function Sidebar() {
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
-            <span className="text-base">{item.icon}</span>
+            <span className="w-5 text-center text-base">{item.icon}</span>
             {item.label}
           </NavLink>
         ))}

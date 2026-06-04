@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 
 const { pool } = require('../config/database');
 
-const allowedProfiles = ['admin', 'operador'];
+const allowedProfiles = ['admin', 'gerente', 'estoquista', 'operador'];
 const allowedStatuses = ['ativo', 'inativo'];
 
 function validateEmail(email) {
@@ -39,7 +39,7 @@ function validateUserData(data, isCreating = true) {
   }
 
   if (data.perfil !== undefined && !allowedProfiles.includes(data.perfil)) {
-    errors.push('Perfil deve ser admin ou operador.');
+    errors.push('Perfil deve ser admin, gerente, estoquista ou operador.');
   }
 
   if (data.status !== undefined && !allowedStatuses.includes(data.status)) {
@@ -167,9 +167,6 @@ async function deleteUser(req, res) {
     return res.status(400).json({ message: 'ID de usuário inválido.' });
   }
 
-  if (Number(id) === Number(req.user.id)) {
-    return res.status(400).json({ message: 'Você não pode inativar seu próprio usuário.' });
-  }
 
   const existingUser = await findUserById(id);
 

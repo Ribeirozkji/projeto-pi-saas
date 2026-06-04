@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
 import Textarea from '../components/Textarea.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 
 const emptyForm = {
@@ -20,6 +21,7 @@ const emptyForm = {
 };
 
 function Suppliers() {
+  const { user } = useAuth();
   const [suppliers, setSuppliers] = useState([]);
   const [filters, setFilters] = useState({ search: '', status: '' });
   const [formData, setFormData] = useState(emptyForm);
@@ -28,6 +30,8 @@ function Suppliers() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canManageSuppliers = ['admin', 'gerente'].includes(user?.perfil);
+  const canDeleteSuppliers = user?.perfil === 'admin';
 
   async function loadSuppliers() {
     setLoading(true);
@@ -62,6 +66,11 @@ function Suppliers() {
   }
 
   function openCreateForm() {
+    if (!canManageSuppliers) {
+      setError('Seu perfil não pode cadastrar fornecedores.');
+      return;
+    }
+
     setEditingSupplier(null);
     setFormData(emptyForm);
     setShowForm(true);
@@ -70,6 +79,11 @@ function Suppliers() {
   }
 
   function openEditForm(supplier) {
+    if (!canManageSuppliers) {
+      setError('Seu perfil não pode editar fornecedores.');
+      return;
+    }
+
     setEditingSupplier(supplier);
     setFormData({
       nome: supplier.nome || '',
@@ -112,6 +126,11 @@ function Suppliers() {
   }
 
   async function handleDelete(supplier) {
+    if (!canDeleteSuppliers) {
+      setError('Seu perfil não pode inativar fornecedores.');
+      return;
+    }
+
     const confirmed = window.confirm(`Deseja inativar o fornecedor ${supplier.nome}?`);
     if (!confirmed) return;
 
@@ -153,7 +172,7 @@ function Suppliers() {
       <PageHeader
         title="Fornecedores"
         subtitle="Cadastro básico dos fornecedores vinculados aos produtos."
-        action={<Button onClick={openCreateForm}>Novo fornecedor</Button>}
+        action={canManageSuppliers ? <Button onClick={openCreateForm}>Novo fornecedor</Button> : null}
       />
 
       <Alert message={message} type="success" />
