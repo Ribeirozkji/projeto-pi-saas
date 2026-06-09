@@ -170,6 +170,8 @@ function Users() {
             />
             <Select label="Perfil" name="perfil" value={formData.perfil} onChange={handleFormChange}>
               <option value="admin">Admin</option>
+              <option value="gerente">Gerente</option>
+              <option value="estoquista">Estoquista</option>
               <option value="operador">Operador</option>
             </Select>
             <Select label="Status" name="status" value={formData.status} onChange={handleFormChange}>

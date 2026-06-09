@@ -48,15 +48,7 @@ async function login(req, res) {
 }
 
 async function me(req, res) {
-  return res.json({
-    user: {
-      id: 1,
-      nome: 'Usuário Local',
-      email: 'sistema@local.com',
-      perfil: 'admin',
-      status: 'ativo'
-    }
-  });
+  return res.json({ user: req.user });
 }
 
 module.exports = {

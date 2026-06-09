@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
 import Textarea from '../components/Textarea.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 import { formatDate, formatDateTime } from '../utils/formatters.js';
 
@@ -28,6 +29,7 @@ const emptyForm = {
 };
 
 function StockMovements() {
+  const { user } = useAuth();
   const [movements, setMovements] = useState([]);
   const [products, setProducts] = useState([]);
   const [lowStock, setLowStock] = useState([]);
@@ -38,6 +40,7 @@ function StockMovements() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canCreateMovement = ['admin', 'gerente', 'estoquista'].includes(user?.perfil);
 
 
   async function loadProducts() {

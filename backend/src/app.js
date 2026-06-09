@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
+const { authMiddleware, authorizeRoles } = require('./middlewares/auth.middleware');
 const authRoutes = require('./routes/auth.routes');
 const usersRoutes = require('./routes/users.routes');
 const productsRoutes = require('./routes/products.routes');
@@ -55,14 +56,14 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/categories', categoriesRoutes);
-app.use('/api/suppliers', suppliersRoutes);
-app.use('/api/stock', stockRoutes);
-app.use('/api/sales', salesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/reports', reportsRoutes);
+app.use('/api/users', authMiddleware, authorizeRoles('admin'), usersRoutes);
+app.use('/api/products', authMiddleware, productsRoutes);
+app.use('/api/categories', authMiddleware, categoriesRoutes);
+app.use('/api/suppliers', authMiddleware, suppliersRoutes);
+app.use('/api/stock', authMiddleware, stockRoutes);
+app.use('/api/sales', authMiddleware, salesRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/reports', authMiddleware, authorizeRoles('admin', 'gerente'), reportsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

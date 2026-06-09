@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
 import Textarea from '../components/Textarea.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 import { formatCurrency, formatDate } from '../utils/formatters.js';
 
@@ -26,6 +27,7 @@ const emptyForm = {
 };
 
 function Products() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
@@ -36,6 +38,8 @@ function Products() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canManageProducts = ['admin', 'gerente'].includes(user?.perfil);
+  const canDeleteProducts = user?.perfil === 'admin';
 
   async function loadSupportData() {
     const [categoriesResponse, suppliersResponse] = await Promise.all([
@@ -86,6 +90,11 @@ function Products() {
   }
 
   function openCreateForm() {
+    if (!canManageProducts) {
+      setError('Seu perfil não pode cadastrar produtos.');
+      return;
+    }
+
     setEditingProduct(null);
     setFormData(emptyForm);
     setShowForm(true);
@@ -94,6 +103,11 @@ function Products() {
   }
 
   function openEditForm(product) {
+    if (!canManageProducts) {
+      setError('Seu perfil não pode editar produtos.');
+      return;
+    }
+
     setEditingProduct(product);
     setFormData({
       sku: product.sku || '',
@@ -152,6 +166,11 @@ function Products() {
   }
 
   async function handleDelete(product) {
+    if (!canDeleteProducts) {
+      setError('Seu perfil não pode inativar produtos.');
+      return;
+    }
+
     const confirmed = window.confirm(`Deseja inativar o produto ${product.nome}?`);
     if (!confirmed) return;
 
@@ -203,7 +222,7 @@ function Products() {
       <PageHeader
         title="Produtos"
         subtitle="Cadastro, consulta, filtros e controle básico dos produtos."
-        action={<Button onClick={openCreateForm}>Novo produto</Button>}
+        action={canManageProducts ? <Button onClick={openCreateForm}>Novo produto</Button> : null}
       />
 
       <Alert message={message} type="success" />

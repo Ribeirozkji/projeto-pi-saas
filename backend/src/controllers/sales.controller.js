@@ -54,6 +54,26 @@ function validateSaleData(data) {
   return errors;
 }
 
+function validateCancelReason(reason) {
+  const normalizedReason = typeof reason === 'string' ? reason.trim() : '';
+
+  if (normalizedReason.length < 3) {
+    return {
+      error: 'Informe um motivo de cancelamento com pelo menos 3 caracteres.',
+      reason: normalizedReason
+    };
+  }
+
+  if (normalizedReason.length > 255) {
+    return {
+      error: 'Motivo de cancelamento deve ter no máximo 255 caracteres.',
+      reason: normalizedReason
+    };
+  }
+
+  return { reason: normalizedReason };
+}
+
 function normalizeItems(items) {
   const itemsByProduct = new Map();
 
@@ -214,6 +234,7 @@ async function createSale(req, res) {
 
   const items = normalizeItems(req.body.items);
   const descontoCents = toCents(req.body.desconto || 0);
+  const currentUserId = req.user?.id || 1;
   const connection = await pool.getConnection();
 
   try {
@@ -285,7 +306,7 @@ async function createSale(req, res) {
        VALUES (?, ?, ?, ?, ?, ?, 'finalizada')`,
       [
         numeroVenda,
-        1,
+        currentUserId,
         centsToDecimal(subtotalCents),
         centsToDecimal(descontoCents),
         centsToDecimal(totalCents),
@@ -328,7 +349,7 @@ async function createSale(req, res) {
          ) VALUES (?, ?, 'venda', ?, ?, ?, ?)`,
         [
           item.product.id,
-          1,
+          currentUserId,
           item.quantidade,
           estoqueAnterior,
           estoquePosterior,
@@ -352,9 +373,17 @@ async function createSale(req, res) {
 
 async function cancelSale(req, res) {
   const { id } = req.params;
+  const currentUserId = req.user?.id || 1;
+  const { error: reasonError, reason: cancelReason } = validateCancelReason(
+    req.body.motivo_cancelamento || req.body.cancel_reason
+  );
 
   if (!isPositiveInteger(id)) {
     return res.status(400).json({ message: 'ID de venda inválido.' });
+  }
+
+  if (reasonError) {
+    return res.status(400).json({ message: reasonError });
   }
 
   const connection = await pool.getConnection();
@@ -429,7 +458,7 @@ async function cancelSale(req, res) {
          ) VALUES (?, ?, 'devolucao', ?, ?, ?, ?)`,
         [
           item.product_id,
-          1,
+          currentUserId,
           item.quantidade,
           estoqueAnterior,
           estoquePosterior,
@@ -438,12 +467,28 @@ async function cancelSale(req, res) {
       );
     }
 
-    await connection.execute(
-      `UPDATE sales
-       SET status = 'cancelada'
-       WHERE id = ?`,
-      [id]
-    );
+    try {
+      await connection.execute(
+        `UPDATE sales
+         SET status = 'cancelada',
+             cancel_reason = ?,
+             canceled_by = ?,
+             canceled_at = NOW()
+         WHERE id = ?`,
+        [cancelReason, currentUserId, id]
+      );
+    } catch (error) {
+      if (error.code !== 'ER_BAD_FIELD_ERROR') {
+        throw error;
+      }
+
+      await connection.execute(
+        `UPDATE sales
+         SET status = 'cancelada'
+         WHERE id = ?`,
+        [id]
+      );
+    }
 
     const canceledSale = await getSaleDetails(id, connection);
 

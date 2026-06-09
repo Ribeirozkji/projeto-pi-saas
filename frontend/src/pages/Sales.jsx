@@ -8,6 +8,7 @@ import Input from '../components/Input.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import Select from '../components/Select.jsx';
 import Table from '../components/Table.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import api from '../services/api.js';
 import { formatCurrency, formatDateTime } from '../utils/formatters.js';
 
@@ -20,6 +21,7 @@ const paymentMethods = [
 
 function Sales() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
@@ -31,6 +33,7 @@ function Sales() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const canCancelSale = ['admin', 'gerente'].includes(user?.perfil);
 
   async function loadSales() {
     try {
@@ -175,15 +178,28 @@ function Sales() {
   }
 
   async function cancelSale(sale) {
+    if (!canCancelSale) {
+      setError('Seu perfil não pode cancelar vendas.');
+      return;
+    }
+
     const confirmed = window.confirm(`Deseja cancelar a venda ${sale.numero_venda} e estornar o estoque?`);
     if (!confirmed) return;
+
+    const cancelReason = window.prompt('Informe o motivo do cancelamento:');
+    if (!cancelReason || cancelReason.trim().length < 3) {
+      setError('Informe um motivo de cancelamento com pelo menos 3 caracteres.');
+      return;
+    }
 
     setLoading(true);
     setError('');
     setMessage('');
 
     try {
-      await api.post(`/sales/${sale.id}/cancel`);
+      await api.post(`/sales/${sale.id}/cancel`, {
+        motivo_cancelamento: cancelReason.trim()
+      });
       setMessage('Venda cancelada e estoque estornado com sucesso.');
       await Promise.all([loadSales(), loadProducts(search)]);
     } catch (apiError) {
@@ -234,7 +250,7 @@ function Sales() {
       render: (row) => (
         <div className="flex flex-wrap gap-2">
           <Link to={`/sales/${row.id}/receipt`}><Button variant="secondary" className="px-3 py-1.5">Comprovante</Button></Link>
-          {row.status !== 'cancelada' && (
+          {canCancelSale && row.status !== 'cancelada' && (
             <Button variant="danger" className="px-3 py-1.5" onClick={() => cancelSale(row)}>Cancelar</Button>
           )}
         </div>
