@@ -234,7 +234,7 @@ async function createSale(req, res) {
 
   const items = normalizeItems(req.body.items);
   const descontoCents = toCents(req.body.desconto || 0);
-  const currentUserId = req.user?.id || 1;
+  const currentUserId = req.user.id;
   const connection = await pool.getConnection();
 
   try {
@@ -373,7 +373,7 @@ async function createSale(req, res) {
 
 async function cancelSale(req, res) {
   const { id } = req.params;
-  const currentUserId = req.user?.id || 1;
+  const currentUserId = req.user.id;
   const { error: reasonError, reason: cancelReason } = validateCancelReason(
     req.body.motivo_cancelamento || req.body.cancel_reason
   );

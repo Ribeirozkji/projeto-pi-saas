@@ -2,6 +2,9 @@ const bcrypt = require('bcrypt');
 
 const { pool } = require('../config/database');
 const generateToken = require('../utils/generateToken');
+const { clearAuthCookie, setAuthCookie } = require('../middlewares/security.middleware');
+
+const DUMMY_PASSWORD_HASH = '$2b$10$3jWm9tsstbmBUF1bO4P5h.lYdgPolII0bCDjiEURWFZFGss1WNRhe';
 
 function removePassword(user) {
   const { senha, ...userWithoutPassword } = user;
@@ -23,28 +26,25 @@ async function login(req, res) {
     [email]
   );
 
-  if (users.length === 0) {
-    return res.status(401).json({ message: 'Email ou senha inválidos.' });
-  }
-
   const user = users[0];
+  const passwordMatches = await bcrypt.compare(senha, user?.senha || DUMMY_PASSWORD_HASH);
 
-  if (user.status !== 'ativo') {
-    return res.status(403).json({ message: 'Usuário inativo.' });
-  }
-
-  const passwordMatches = await bcrypt.compare(senha, user.senha);
-
-  if (!passwordMatches) {
+  if (!user || !passwordMatches || user.status !== 'ativo') {
     return res.status(401).json({ message: 'Email ou senha inválidos.' });
   }
 
   const token = generateToken(user);
+  setAuthCookie(res, token);
 
   return res.json({
     user: removePassword(user),
-    token
+    ...(process.env.RETURN_TOKEN_IN_BODY === 'true' && { token })
   });
+}
+
+async function logout(req, res) {
+  clearAuthCookie(res);
+  return res.json({ message: 'Sessão encerrada com sucesso.' });
 }
 
 async function me(req, res) {
@@ -53,5 +53,6 @@ async function me(req, res) {
 
 module.exports = {
   login,
+  logout,
   me
 };

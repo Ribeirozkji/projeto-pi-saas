@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import api, { TOKEN_STORAGE_KEY } from '../services/api.js';
+import api from '../services/api.js';
 
 const AuthContext = createContext(null);
 
@@ -9,19 +9,10 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   async function loadCurrentUser() {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
     try {
       const { data } = await api.get('/auth/me');
       setUser(data.user);
     } catch {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
       setUser(null);
     } finally {
       setLoading(false);
@@ -41,14 +32,16 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     const { data } = await api.post('/auth/login', credentials);
-    localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
     setUser(data.user);
     return data;
   }
 
-  function logout() {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setUser(null);
+  async function logout() {
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      setUser(null);
+    }
   }
 
   const value = useMemo(() => ({

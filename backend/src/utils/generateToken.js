@@ -12,7 +12,9 @@ function generateToken(user) {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN || '1d'
+      expiresIn: process.env.JWT_EXPIRES_IN || '1d',
+      issuer: process.env.JWT_ISSUER || 'estoque-vendas-api',
+      audience: process.env.JWT_AUDIENCE || 'estoque-vendas-web'
     }
   );
 }

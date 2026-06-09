@@ -3,6 +3,12 @@ const cors = require('cors');
 
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 const { authMiddleware, authorizeRoles } = require('./middlewares/auth.middleware');
+const {
+  parseCookies,
+  requestId,
+  requireCookieCsrfHeader,
+  securityHeaders
+} = require('./middlewares/security.middleware');
 const authRoutes = require('./routes/auth.routes');
 const usersRoutes = require('./routes/users.routes');
 const productsRoutes = require('./routes/products.routes');
@@ -17,6 +23,11 @@ const app = express();
 
 const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:5173'];
 
+app.set('trust proxy', 1);
+
+app.use(requestId);
+app.use(securityHeaders);
+
 app.use(cors({
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -30,6 +41,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(parseCookies);
 
 app.get('/', (req, res) => {
   res.json({
@@ -56,12 +68,12 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware, authorizeRoles('admin'), usersRoutes);
-app.use('/api/products', authMiddleware, productsRoutes);
-app.use('/api/categories', authMiddleware, categoriesRoutes);
-app.use('/api/suppliers', authMiddleware, suppliersRoutes);
-app.use('/api/stock', authMiddleware, stockRoutes);
-app.use('/api/sales', authMiddleware, salesRoutes);
+app.use('/api/users', authMiddleware, requireCookieCsrfHeader, authorizeRoles('admin'), usersRoutes);
+app.use('/api/products', authMiddleware, requireCookieCsrfHeader, productsRoutes);
+app.use('/api/categories', authMiddleware, requireCookieCsrfHeader, categoriesRoutes);
+app.use('/api/suppliers', authMiddleware, requireCookieCsrfHeader, suppliersRoutes);
+app.use('/api/stock', authMiddleware, requireCookieCsrfHeader, stockRoutes);
+app.use('/api/sales', authMiddleware, requireCookieCsrfHeader, salesRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/reports', authMiddleware, authorizeRoles('admin', 'gerente'), reportsRoutes);
 

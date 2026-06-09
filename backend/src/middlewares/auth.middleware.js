@@ -1,20 +1,27 @@
 const jwt = require('jsonwebtoken');
 
 const { pool } = require('../config/database');
+const { AUTH_COOKIE_NAME } = require('./security.middleware');
 
 async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME] || null;
+  const token = bearerToken || cookieToken;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return res.status(401).json({ message: 'Token não informado.' });
   }
 
-  const token = authHeader.split(' ')[1];
+  req.authenticatedByCookie = Boolean(cookieToken && !bearerToken);
 
   let decoded;
 
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      issuer: process.env.JWT_ISSUER || 'estoque-vendas-api',
+      audience: process.env.JWT_AUDIENCE || 'estoque-vendas-web'
+    });
   } catch (error) {
     return res.status(401).json({ message: 'Token inválido ou expirado.' });
   }

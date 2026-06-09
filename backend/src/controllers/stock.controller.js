@@ -112,7 +112,7 @@ async function createMovement(req, res) {
   const tipo = req.body.tipo;
   const quantidade = Number(req.body.quantidade);
   const observacao = req.body.observacao?.trim() || null;
-  const currentUserId = req.user?.id || 1;
+  const currentUserId = req.user.id;
 
   const connection = await pool.getConnection();
 
